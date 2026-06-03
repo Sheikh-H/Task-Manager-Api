@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 @app.route("/register", methods=["POST"])
 def register():
-    user = request.json
+    user = request.get_json()
     try:
         result = register_user(user)
         if result:
