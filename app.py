@@ -1,4 +1,5 @@
 from flask import Flask, request
+from services.db import *
 from dotenv import load_dotenv
 import os
 
@@ -6,11 +7,16 @@ load_dotenv()
 
 app = Flask(__name__)
 
-app.route("/", methods=["GET"])
 
-
-def get():
-    pass
+@app.route("/register", methods=["POST"])
+def register():
+    user = request.json
+    try:
+        result = register_user(user)
+        if result:
+            return 201
+    except Exception as e:
+        return {"error": f"unable to register - {e}"}, 400
 
 
 if __name__ == "__main__":
