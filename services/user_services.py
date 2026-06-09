@@ -48,3 +48,4 @@ def login_user(email, password):
     token = jwt.encode(payload, key, algorithm="HS256")
 
     return token, None
+

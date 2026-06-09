@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from database.db import *
 from services.user_services import *
 from dotenv import load_dotenv
@@ -12,6 +12,8 @@ ensure_env_file()
 load_dotenv()
 
 app = Flask(__name__)
+
+key = os.environ.get("SECRET_KEY")
 
 init_db()
 
@@ -71,6 +73,29 @@ def login():
         return jsonify(error), HTTPStatus.UNAUTHORIZED
 
     return jsonify(token), HTTPStatus.OK
+
+@app.route("/add_task", methods=['POST'])
+@login_required
+def add_task():
+       
+
+
+@app.route("/tasks", methods=["GET"])
+@login_required
+def all_tasks():
+    token = request.headers.get("Authorization")
+
+    user_id = get_user_id(token)
+
+    tasks = all_tasks(user_id)
+
+    if not user_id:
+        return jsonify(message="Please log in first"), HTTPStatus.UNAUTHORIZED
+
+    if not tasks:
+        return jsonify(message="No tasks found"), HTTPStatus.NOT_FOUND
+
+    return jsonify(tasks), HTTPStatus.OK
 
 
 if __name__ == "__main__":

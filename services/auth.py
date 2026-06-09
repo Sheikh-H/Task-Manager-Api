@@ -25,11 +25,19 @@ def login_required(func):
 
             request.user_id = payload["user_id"]
 
-        except jwt.ExpiredSignatureError:
-            return jsonify(message="Token expired"), HTTPStatus.UNAUTHORIZED
         except:
             return jsonify(message="Invalid token"), HTTPStatus.UNAUTHORIZED
 
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def get_user_id(header):
+
+    token = header.split(" ")[1]
+    payload = jwt.decode(token, key, algorithms=["HS256"])
+
+    user_id = payload["user_id"]
+
+    return user_id
