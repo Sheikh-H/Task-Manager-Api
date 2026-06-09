@@ -1,8 +1,9 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from database.db import *
+from services.users_services import *
 from dotenv import load_dotenv
 import os
-
+from http import HTTPStatus
 
 load_dotenv()
 
@@ -10,15 +11,38 @@ app = Flask(__name__)
 
 init_db()
 
+
 @app.route("/register", methods=["POST"])
 def register():
-    user = request.get_json()
-    try:
-        result = register_user(user)
-        if result:
-            return 201
-    except Exception as e:
-        return {"error": f"unable to register - {e}"}, 400
+
+    allowed_fields = {"name", "email", "password"}
+
+    user = request.json
+    if not user:
+        return jsonify(message="Invalid JSON"), HTTPStatus.BAD_REQUEST
+
+    incoming_fields = set(user.keys())
+
+    extra = incoming_fields - allowed_fields
+    if extra:
+        return jsonify(message="Unexpected fields in request"), HTTPStatus.BAD_REQUEST
+
+    missing = allowed_fields - incoming_fields
+    if missing:
+        return jsonify(message="Missing fields in request"), HTTPStatus.BAD_REQUEST
+
+    result = register_user(
+        str(user.get("name")), str(user.get("email")), str(user.get("password"))
+    )
+
+    if result == "existing":
+        return jsonify(message="Email exists"), HTTPStatus.CONFLICT
+
+    if result == "registered":
+        return jsonify(message="Account created, please login"), HTTPStatus.CREATED
+
+    return jsonify(message="Unexpected error"), HTTPStatus.INTERNAL_SERVER_ERROR
+
 
 
 if __name__ == "__main__":
