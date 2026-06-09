@@ -23,3 +23,14 @@ def register_user(name, email, password):
         ),
     )
     return "registered"
+
+
+def login_user(email, password):
+    user = fetch_one("select * from users where email = ?", (email,))
+    
+    try:
+        PasswordHasher().verify(user['password_hash'], password)
+        return "logged-in"
+    except:
+        return "password incorrect"
+    
