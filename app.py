@@ -1,12 +1,14 @@
 from flask import Flask, request
-from services.db import *
+from database.db import *
 from dotenv import load_dotenv
 import os
+
 
 load_dotenv()
 
 app = Flask(__name__)
 
+init_db()
 
 @app.route("/register", methods=["POST"])
 def register():
