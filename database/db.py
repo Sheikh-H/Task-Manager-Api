@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-from pathlib import Path
 import sqlite3
 from datetime import datetime
 
@@ -16,7 +15,6 @@ def get_db():
 
 
 def init_db():
-    Path("instance").mkdir(exist_ok=True)
     conn = get_db()
 
     conn.execute("""

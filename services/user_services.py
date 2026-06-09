@@ -3,6 +3,10 @@ from database.db import *
 from argon2 import PasswordHasher
 import jwt
 from flask import request
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def register_user(name, email, password):
@@ -10,7 +14,6 @@ def register_user(name, email, password):
 
     ph = PasswordHasher().hash(password)
 
-    # First see if there is a user with the same email and return error
     existing_user = fetch_one("select * from users where email = ?", (email,))
     if existing_user:
         return "existing"
@@ -40,6 +43,8 @@ def login_user(email, password):
         "expires": datetime.utcnow() + timedelta(minutes=30),
     }
 
-    token = jwt.encode(payload, secret_key, algorithm="HS256")
+    key = os.environ.get("SECRET_KEY")
+
+    token = jwt.encode(payload, key, algorithm="HS256")
 
     return token, None

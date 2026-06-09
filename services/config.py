@@ -7,3 +7,5 @@ def ensure_env_file():
         key = secrets.token_hex(16)
         with open(".env", "w") as f:
             f.write(f"SECRET_KEY={key}\n")
+
+

@@ -4,6 +4,9 @@ from services.user_services import *
 from dotenv import load_dotenv
 import os
 from http import HTTPStatus
+from services.config import *
+
+ensure_env_file()
 
 load_dotenv()
 
