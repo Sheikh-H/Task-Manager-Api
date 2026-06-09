@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from http import HTTPStatus
 from services.config import *
+from services.auth import *
 
 ensure_env_file()
 
@@ -65,8 +66,7 @@ def login():
     if extra:
         return jsonify(message="Extra fields in request"), HTTPStatus.BAD_REQUEST
 
-    token, error = login_user(user["email"], user["password"])
-
+    token, error = login_user(user.get("email"), user.get("password"))
     if error:
         return jsonify(error), HTTPStatus.UNAUTHORIZED
 

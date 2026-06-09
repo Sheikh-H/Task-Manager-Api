@@ -24,23 +24,23 @@ def register_user(name, email, password):
             name,
             email,
             ph,
-            now,
+            str(now),
         ),
     )
     return None, "registered"
 
 
 def login_user(email, password):
-    user = fetch_one("select * from users where email = ?", (email,))
-
+    user = fetch_one(
+        "select id, name, email, password_hash from users where email = ?", (email,)
+    )
     try:
         PasswordHasher().verify(user["password_hash"], password)
     except:
         return None, "password incorrect"
 
     payload = {
-        "user_id": user["id"],
-        "expires": datetime.utcnow() + timedelta(minutes=30),
+        "user_id": str(user["id"]),
     }
 
     key = os.environ.get("SECRET_KEY")
