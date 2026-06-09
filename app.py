@@ -76,8 +76,19 @@ def login():
 
 @app.route("/add_task", methods=['POST'])
 @login_required
-def add_task():
-       
+def add_tasks():
+    allowed_fields = {'title', 'description', 'status'}
+    token = request.headers.get("Authorization")
+    
+    user_id = get_user_id(token)
+    
+    task = request.json
+    
+    if not task:
+        return jsonify(message="Please include a task"), HTTPStatus.BAD_REQUEST
+    
+    
+    
 
 
 @app.route("/tasks", methods=["GET"])

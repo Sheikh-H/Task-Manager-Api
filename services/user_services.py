@@ -16,7 +16,7 @@ def register_user(name, email, password):
 
     existing_user = fetch_one("select * from users where email = ?", (email,))
     if existing_user:
-        return "existing"
+        return None, "existing"
 
     execute(
         "insert into users (name, email, password_hash, created_at) values (?, ?, ?, ?)",
@@ -32,7 +32,7 @@ def register_user(name, email, password):
 
 def login_user(email, password):
     user = fetch_one(
-        "select id, name, email, password_hash from users where email = ?", (email,)
+        "select * from users where email = ?", (email,)
     )
     try:
         PasswordHasher().verify(user["password_hash"], password)

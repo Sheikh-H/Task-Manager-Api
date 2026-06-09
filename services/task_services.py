@@ -17,3 +17,21 @@ def all_tasks(user_id):
     )
     tasks = list(tasks)
     return tasks
+
+
+def add_task(task, user_id):
+    try:
+        execute(
+        """
+            insert into tasks (user_id, title, description) values (?, ?, ?);
+            """,
+        (
+            user_id,
+            task["title"],
+            task["description"],
+        ),
+    )
+        return "success"
+    except:
+        return None
+    

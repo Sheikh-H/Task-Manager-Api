@@ -23,8 +23,6 @@ def init_db():
                 name text not null, 
                 email text unique not null, 
                 password_hash text not null, 
-                created_at text not null,
-                updated_at text
             )
             """)
     conn.commit()
@@ -34,8 +32,6 @@ def init_db():
                 user_id integer not null, 
                 title text not null,
                 description text not null, 
-                created_at text not null, 
-                updated_at text,
                 FOREIGN KEY (user_id) REFERENCES users(id)
                 ON DELETE CASCADE
             )
