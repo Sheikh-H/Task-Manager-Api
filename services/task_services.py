@@ -15,8 +15,14 @@ def all_tasks(user_id):
             """,
         (user_id,),
     )
-    tasks = list(tasks)
-    return tasks
+    
+    if tasks:
+        tasks = list(tasks)
+        
+    if not tasks:
+        return None, "No tasks"
+    
+    return tasks, None
 
 
 def add_task(task, user_id):

@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, g
 from database.db import *
 from services.user_services import *
+from services.task_services import *
 from dotenv import load_dotenv
 import os
 from http import HTTPStatus
@@ -25,29 +26,34 @@ def register():
 
     user = request.json
     if not user:
-        return jsonify(message="Invalid JSON"), HTTPStatus.BAD_REQUEST
+        return jsonify(error="Invalid JSON"), HTTPStatus.BAD_REQUEST
 
     incoming_fields = set(user.keys())
 
     extra = incoming_fields - allowed_fields
     if extra:
-        return jsonify(message="Unexpected fields in request"), HTTPStatus.BAD_REQUEST
+        return jsonify(error="Unexpected fields in request"), HTTPStatus.BAD_REQUEST
 
     missing = allowed_fields - incoming_fields
     if missing:
-        return jsonify(message="Missing fields in request"), HTTPStatus.BAD_REQUEST
+        return jsonify(error="Missing fields in request"), HTTPStatus.BAD_REQUEST
 
-    result = register_user(
-        str(user.get("name")), str(user.get("email")), str(user.get("password"))
-    )
+    email = str(user.get("email")).strip().lower()
+    password = str(user.get("password")).strip()
+    name = str(user.get("name")).strip()
 
-    if result == "existing":
-        return jsonify(message="Email exists"), HTTPStatus.CONFLICT
+    validate = validate_email(email)
+    if not validate:
+        return jsonify(error="Please enter a valid email"), HTTPStatus.BAD_REQUEST
+    result, message = register_user(name, email, password)
 
-    if result == "registered":
-        return jsonify(message="Account created, please login"), HTTPStatus.CREATED
+    if message == "existing":
+        return jsonify(error="Email exists"), HTTPStatus.CONFLICT
 
-    return jsonify(message="Unexpected error"), HTTPStatus.INTERNAL_SERVER_ERROR
+    if result:
+        return jsonify(success=f"{result}"), HTTPStatus.CREATED
+
+    return jsonify(error="Unexpected error"), HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 @app.route("/login", methods=["POST"])
@@ -56,57 +62,79 @@ def login():
     user = request.json
 
     if not user:
-        return jsonify(message="Invalid JSON"), HTTPStatus.BAD_REQUEST
+        return jsonify(error="Invalid JSON"), HTTPStatus.BAD_REQUEST
 
     incoming_fields = set(user.keys())
 
     missing = allowed_fields - incoming_fields
     if missing:
-        return jsonify(message="Missing fields in request"), HTTPStatus.BAD_REQUEST
+        return jsonify(error="Missing fields in request"), HTTPStatus.BAD_REQUEST
 
     extra = incoming_fields - allowed_fields
     if extra:
-        return jsonify(message="Extra fields in request"), HTTPStatus.BAD_REQUEST
+        return jsonify(error="Extra fields in request"), HTTPStatus.BAD_REQUEST
 
-    token, error = login_user(user.get("email"), user.get("password"))
+    email = str(user.get("email")).strip().lower()
+    password = str(user.get("password")).strip()
+
+    validate = validate_email(email)
+    if not validate:
+        return jsonify(error="Please enter a valid email"), HTTPStatus.BAD_REQUEST
+
+    token, error = login_user(email, password)
     if error:
-        return jsonify(error), HTTPStatus.UNAUTHORIZED
+        return jsonify(error=f"{error}"), HTTPStatus.UNAUTHORIZED
 
-    return jsonify(token), HTTPStatus.OK
-
-@app.route("/add_task", methods=['POST'])
-@login_required
-def add_tasks():
-    allowed_fields = {'title', 'description', 'status'}
-    token = request.headers.get("Authorization")
-    
-    user_id = get_user_id(token)
-    
-    task = request.json
-    
-    if not task:
-        return jsonify(message="Please include a task"), HTTPStatus.BAD_REQUEST
-    
-    
-    
+    return jsonify(success=f"{token}"), HTTPStatus.OK
 
 
 @app.route("/tasks", methods=["GET"])
 @login_required
-def all_tasks():
+def tasks():
     token = request.headers.get("Authorization")
 
     user_id = get_user_id(token)
 
-    tasks = all_tasks(user_id)
+    tasks, error = all_tasks(user_id)
 
     if not user_id:
-        return jsonify(message="Please log in first"), HTTPStatus.UNAUTHORIZED
+        return jsonify(error="Valid token required"), HTTPStatus.UNAUTHORIZED
 
-    if not tasks:
-        return jsonify(message="No tasks found"), HTTPStatus.NOT_FOUND
+    if error:
+        return jsonify(error="No tasks found"), HTTPStatus.NOT_FOUND
 
     return jsonify(tasks), HTTPStatus.OK
+
+
+@app.route("/add_task", methods=["POST"])
+@login_required
+def add_tasks():
+    allowed_fields = {"title", "description", "status"}
+    token = request.headers.get("Authorization")
+
+    user_id = get_user_id(token)
+
+    task = request.json
+
+    if not task:
+        return jsonify(error="Please include a task"), HTTPStatus.BAD_REQUEST
+
+    incoming_fields = set(task.keys())
+
+    missing = allowed_fields - incoming_fields
+    if missing:
+        return jsonify(error="Missing fields in request"), HTTPStatus.BAD_REQUEST
+
+    extra = incoming_fields - allowed_fields
+    if extra:
+        return jsonify(error="Extra fields in request"), HTTPStatus.BAD_REQUEST
+
+    task, error = add_tasks(user_id, task)
+    if error:
+        return jsonify(error="Unable to create task"), HTTPStatus.NOT_ACCEPTABLE
+
+    return jsonify(task), HTTPStatus.CREATED
+
 
 
 if __name__ == "__main__":

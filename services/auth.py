@@ -5,6 +5,7 @@ from functools import wraps
 from flask import request
 from dotenv import load_dotenv
 import os
+import re
 
 load_dotenv()
 
@@ -31,6 +32,11 @@ def login_required(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def validate_email(email):
+    regex = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
+    return bool(re.match(regex, email))
 
 
 def get_user_id(header):

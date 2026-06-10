@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from database.db import *
 from argon2 import PasswordHasher
 import jwt
@@ -7,6 +7,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+key = os.environ.get("SECRET_KEY")
 
 
 def register_user(name, email, password):
@@ -19,21 +21,28 @@ def register_user(name, email, password):
         return None, "existing"
 
     execute(
-        "insert into users (name, email, password_hash, created_at) values (?, ?, ?, ?)",
+        "insert into users (name, email, password_hash) values (?, ?, ?)",
         (
             name,
             email,
             ph,
-            str(now),
         ),
     )
-    return None, "registered"
+
+    user_id = fetch_one("select id from users where email = ?;", (email,))
+
+    payload = {
+        "user_id": str(user_id),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+    }
+
+    token = jwt.encode(payload, key, algorithm="HS256")
+
+    return token, None
 
 
 def login_user(email, password):
-    user = fetch_one(
-        "select * from users where email = ?", (email,)
-    )
+    user = fetch_one("select * from users where email = ?", (email,))
     try:
         PasswordHasher().verify(user["password_hash"], password)
     except:
@@ -41,11 +50,9 @@ def login_user(email, password):
 
     payload = {
         "user_id": str(user["id"]),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
     }
-
-    key = os.environ.get("SECRET_KEY")
 
     token = jwt.encode(payload, key, algorithm="HS256")
 
     return token, None
-

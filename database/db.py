@@ -16,26 +16,24 @@ def get_db():
 
 def init_db():
     conn = get_db()
-
     conn.execute("""
-            create table if not exists users (
-                id integer primary key autoincrement,
-                name text not null, 
-                email text unique not null, 
-                password_hash text not null, 
-            )
+        create table if not exists users (
+            id integer primary key autoincrement,
+            name text not null, 
+            email text unique not null, 
+            password_hash text not null
+            );
             """)
     conn.commit()
     conn.execute("""
-            create table if not exists tasks (
-                id integer primary key autoincrement, 
-                user_id integer not null, 
-                title text not null,
-                description text not null, 
-                FOREIGN KEY (user_id) REFERENCES users(id)
-                ON DELETE CASCADE
-            )
-                """)
+        create table if not exists tasks (
+            id integer primary key autoincrement,
+            user_id integer not null,
+            title text not null,
+            description text not null, 
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            """)
     conn.commit()
     conn.close()
 
