@@ -103,16 +103,17 @@ def tasks():
     if error:
         return jsonify(error="No tasks found"), HTTPStatus.NOT_FOUND
 
-    return jsonify(tasks), HTTPStatus.OK
+    return jsonify([dict(row) for row in tasks]), HTTPStatus.OK
 
 
-@app.route("/add_task", methods=["POST"])
+@app.route("/add-tasks", methods=["POST"])
 @login_required
 def add_tasks():
     allowed_fields = {"title", "description", "status"}
-    token = request.headers.get("Authorization")
 
-    user_id = get_user_id(token)
+    header = request.headers.get("Authorization")
+
+    user_id = get_user_id(header)
 
     task = request.json
 
@@ -129,12 +130,53 @@ def add_tasks():
     if extra:
         return jsonify(error="Extra fields in request"), HTTPStatus.BAD_REQUEST
 
-    task, error = add_tasks(user_id, task)
+    task, error = add_task(task, user_id)
     if error:
-        return jsonify(error="Unable to create task"), HTTPStatus.NOT_ACCEPTABLE
+        return jsonify(error=f"{error}"), HTTPStatus.NOT_ACCEPTABLE
 
     return jsonify(task), HTTPStatus.CREATED
 
+
+@app.route("/task/<int:_id>", methods=["DELETE"])
+@login_required
+def delete_tasks(_id):
+    header = request.headers.get("Authorization")
+
+    user_id = get_user_id(header)
+
+    error = delete_task(user_id, _id)
+
+    if error == "no task":
+        return jsonify(error="No task found"), HTTPStatus.NOT_FOUND
+
+    if error == "deleted":
+        return jsonify(success="Task deleted"), HTTPStatus.NO_CONTENT
+
+    if error == "error":
+        return jsonify(error="Unable to delete"), HTTPStatus.BAD_REQUEST
+
+
+@app.route("/task/<int:_id>", methods=["PUT"])
+@login_required
+def update_tasks(_id):
+    allowed_fields = {"title", "description", "status"}
+
+    header = request.headers.get("Authorization")
+
+    user_id = get_user_id(header)
+
+    fields = request.json
+
+    for field in fields.keys():
+        if field not in allowed_fields:
+            return jsonify(error="Invalid fields"), HTTPStatus.BAD_REQUEST
+
+    for key, value in fields.items():
+        error = update_task(_id, key, value, user_id)
+        if error:
+            return jsonify(error="Unable to update task"), HTTPStatus.BAD_REQUEST
+
+    return jsonify(success="updated"), HTTPStatus.OK
 
 
 if __name__ == "__main__":

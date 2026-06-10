@@ -32,7 +32,7 @@ def register_user(name, email, password):
     user_id = fetch_one("select id from users where email = ?;", (email,))
 
     payload = {
-        "user_id": str(user_id),
+        "user_id": str(user_id[0]),
         "exp": datetime.now(timezone.utc) + timedelta(hours=1),
     }
 
@@ -56,3 +56,13 @@ def login_user(email, password):
     token = jwt.encode(payload, key, algorithm="HS256")
 
     return token, None
+
+
+def get_user_id(header):
+
+    token = header.split(" ")[1]
+    payload = jwt.decode(token, key, algorithms=["HS256"])
+
+    user_id = payload.get("user_id")
+    
+    return user_id

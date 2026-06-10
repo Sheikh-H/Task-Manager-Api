@@ -37,13 +37,3 @@ def login_required(func):
 def validate_email(email):
     regex = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
     return bool(re.match(regex, email))
-
-
-def get_user_id(header):
-
-    token = header.split(" ")[1]
-    payload = jwt.decode(token, key, algorithms=["HS256"])
-
-    user_id = payload["user_id"]
-
-    return user_id

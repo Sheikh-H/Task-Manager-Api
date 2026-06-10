@@ -60,6 +60,6 @@ def fetch_many(query, params=()):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute(query, params)
-    rows = cursor.fetchmany()
+    rows = cursor.fetchall()
     conn.close()
     return rows
