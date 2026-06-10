@@ -164,7 +164,7 @@ def delete_tasks(_id):
         return jsonify(error="No task found"), HTTPStatus.NOT_FOUND
 
     if error == "deleted":
-        return jsonify(success="Task deleted"), HTTPStatus.NO_CONTENT
+        return "", HTTPStatus.NO_CONTENT
 
     if error == "error":
         return jsonify(error="Unable to delete"), HTTPStatus.BAD_REQUEST
