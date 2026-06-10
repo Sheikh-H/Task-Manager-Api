@@ -8,20 +8,25 @@ load_dotenv()
 key = os.environ.get("SECRET_KEY")
 
 
-def all_tasks(user_id):
+def all_tasks(user_id, limit, offset):
+    total = fetch_one(
+        """select count(*) as count from tasks where user_id = ?;""", (int(user_id),)
+    )["count"]
+    
+    
     tasks = fetch_many(
         """
-            select * from tasks where user_id = ?;
+            select * from tasks 
+            where user_id = ?
+            limit ?
+            offset ?;
             """,
-        (int(user_id),),
+        (int(user_id), limit, offset),
     )
 
     if tasks:
         tasks = list(tasks)
-        return tasks, None
-
-    if not tasks:
-        return None, "No tasks"
+        return tasks, total
 
 
 def add_task(task, user_id):
@@ -66,26 +71,63 @@ def delete_task(user_id, _id):
 
 
 def update_task(_id, key, value, user_id):
+    _id = int(_id)
+    user_id = int(user_id)
     try:
         task = fetch_one(
-            """select * from tasks where user_id = ? and id = ?;"""(
+            """
+            select * from tasks 
+            where user_id = ? and id = ?;
+            """,
+            (
                 user_id,
                 _id,
-            )
+            ),
         )
 
         if not task:
             return "error"
 
-        execute(
-            """update tasks set ? = ? where id = ? and user_id = ?"""(
-                key,
-                value,
-                _id,
-                user_id,
+        if key == "title":
+            execute(
+                """
+                update tasks 
+                set title = ? 
+                where id = ? and user_id = ?;
+                """,
+                (
+                    value,
+                    _id,
+                    user_id,
+                ),
             )
-        )
+        if key == "description":
+            execute(
+                """
+                update tasks 
+                set description = ? 
+                where id = ? and user_id = ?;
+                """,
+                (
+                    value,
+                    _id,
+                    user_id,
+                ),
+            )
 
+        if key == "status":
+            execute(
+                """
+                update tasks 
+                set status = ? 
+                where id = ? and user_id = ?;
+                """,
+                (
+                    value,
+                    _id,
+                    user_id,
+                ),
+            )
         return None
     except:
         return "error"

@@ -95,15 +95,29 @@ def tasks():
 
     user_id = get_user_id(token)
 
-    tasks, error = all_tasks(user_id)
+    limit = 10
+    page = request.args.get("page", 1, type=int)
+    offset = (page - 1) * limit
+
+    tasks, total = all_tasks(user_id, limit, offset)
+
+    total_pages = (total + limit - 1) // limit
 
     if not user_id:
         return jsonify(error="Valid token required"), HTTPStatus.UNAUTHORIZED
 
-    if error:
-        return jsonify(error="No tasks found"), HTTPStatus.NOT_FOUND
-
-    return jsonify([dict(row) for row in tasks]), HTTPStatus.OK
+    return (
+        jsonify(
+            {
+                "tasks": [dict(row) for row in tasks],
+                "page": page,
+                "limit": limit,
+                "total": total,
+                "total_pages": total_pages,
+            }
+        ),
+        HTTPStatus.OK,
+    )
 
 
 @app.route("/add-tasks", methods=["POST"])
