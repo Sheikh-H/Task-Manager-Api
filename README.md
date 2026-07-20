@@ -11,7 +11,7 @@ https://roadmap.sh/projects/todo-list-api
 
 # 📖 What this project is
 
-This is a backend web API that acts like the server behind a todo list application.
+This is a backend web API that acts like the server behind a todo list/task manager application.
 
 Instead of a graphical interface, this project works through HTTP requests (like sending messages to a server).
 
@@ -151,8 +151,8 @@ Todo List API/
 
 ### Terminal
 
-`git clone https://github.com/sheikh-h/todo-list-api.git`<br>
-`cd todo-list-api`
+`git clone https://github.com/sheikh-h/Task-Manager-Api.git`<br>
+`cd Task-Manager-Api`
 
 ---
 
