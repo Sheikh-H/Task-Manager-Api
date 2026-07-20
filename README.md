@@ -1,4 +1,4 @@
-# 📚 Todo List API
+# 📚 Task Manager / Todo List API
 
 A simple RESTful Todo List API built with Flask and SQLite.
 
